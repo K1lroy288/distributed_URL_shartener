@@ -9,7 +9,7 @@ import (
 )
 
 func GenerateJWT(user model.User) (string, error) {
-	jwtKey := []byte("k1lroyVoiceChat")
+	jwtKey := []byte("distrurlserv")
 	claims := jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
