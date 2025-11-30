@@ -20,4 +20,4 @@ COPY .env .
 
 EXPOSE 8000
 
-CMD ["./main"]
+CMD ["./auth-service"]

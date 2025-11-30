@@ -4,10 +4,10 @@ import (
 	"auth-service/model"
 	"auth-service/service"
 	"auth-service/utils"
-	"encoding/json"
 	"log"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,50 +15,54 @@ type AuthHandler struct {
 	service *service.AuthService
 }
 
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func NewAuthHandler(s *service.AuthService) *AuthHandler {
+	return &AuthHandler{service: s}
+}
 
+func (h *AuthHandler) Login(ctx *gin.Context) {
 	var req model.User
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON at login request", http.StatusBadRequest)
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Printf("Invalid JSON at login request: %v", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 		return
 	}
 
 	user, err := h.service.Login(req.Username)
 	if err != nil {
-		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+		log.Printf("Invalid username or password: %v", err)
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.Userpassword, []byte(req.Userpassword)); err != nil {
-		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+		log.Printf("Invalid username or password: %v", err)
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
 
 	token, err := utils.GenerateJWT(user)
 	if err != nil {
 		log.Printf("JWT generation failed: %v", err)
-		http.Error(w, "Authentication failed", http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Authentication failed"})
 		return
 	}
 
 	response := map[string]string{"token": token}
-	json.NewEncoder(w).Encode(response)
+	ctx.JSON(http.StatusOK, response)
 }
 
-func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
+func (h *AuthHandler) Register(ctx *gin.Context) {
 	var req model.User
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON at register request", http.StatusBadRequest)
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Printf("Invalid JSON at register request: %v", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON at register request"})
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Userpassword), 0)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Userpassword), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("Hashed password generation failed: %v", err)
-		http.Error(w, "Failed to process registration", http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process registration"})
 		return
 	}
 
@@ -69,14 +73,14 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	exist, err := h.service.Register(&user)
 	if err != nil {
 		log.Printf("Exist user check failed: %v", err)
-		http.Error(w, "Authentication failed", http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
 		return
 	}
 
 	if exist {
-		http.Error(w, "User with such username already exist", http.StatusConflict)
+		ctx.JSON(http.StatusConflict, gin.H{"error": "User with such username already exists"})
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	ctx.Status(http.StatusCreated)
 }

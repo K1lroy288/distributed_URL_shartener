@@ -2,9 +2,14 @@ package main
 
 import (
 	"auth-service/config"
+	"auth-service/handler"
 	"auth-service/model"
+	"auth-service/repository"
+	"auth-service/service"
 	"fmt"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -21,4 +26,24 @@ func main() {
 	}
 
 	db.AutoMigrate(&model.User{})
+
+	repo := repository.NewUserRepository(db)
+	service := service.NewAuthService(repo)
+	handler := handler.NewAuthHandler(service)
+
+	r := gin.Default()
+
+	api := r.Group("/auth")
+	{
+		api.GET("/health", func(ctx *gin.Context) {
+			ctx.String(http.StatusOK, "Auth service is up!")
+		})
+
+		api.POST("/login", handler.Login)
+
+		api.POST("/register", handler.Register)
+	}
+
+	addr := fmt.Sprintf(":%s", cfg.Port)
+	r.Run(addr)
 }
