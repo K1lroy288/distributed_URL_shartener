@@ -1,13 +1,13 @@
 package main
 
 import (
-	"auth-service/config"
-	"auth-service/handler"
-	"auth-service/model"
-	"auth-service/repository"
-	"auth-service/service"
 	"fmt"
 	"net/http"
+	"shortener-service/config"
+	"shortener-service/handler"
+	"shortener-service/model"
+	"shortener-service/repository"
+	"shortener-service/service"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -25,23 +25,23 @@ func main() {
 		panic("failed to connect database")
 	}
 
-	db.AutoMigrate(&model.User{})
+	db.AutoMigrate(&model.Url{})
 
-	repo := repository.NewUserRepository(db)
-	service := service.NewAuthService(repo)
-	handler := handler.NewAuthHandler(service)
+	repo := repository.NewShortenerRepository(db)
+	service := service.NewShortenerService(repo)
+	handler := handler.NewShortenerHandler(service)
 
 	r := gin.Default()
 
-	api := r.Group("/auth")
+	api := r.Group("/short")
 	{
 		api.GET("/health", func(ctx *gin.Context) {
-			ctx.String(http.StatusOK, "Auth service is up!")
+			ctx.String(http.StatusOK, "Shortener service is up!")
 		})
 
-		api.POST("/login", handler.Login)
+		api.POST("/shortLink", handler.SaveCode)
 
-		api.POST("/register", handler.Register)
+		api.POST("/:shortCode", handler.GetLink)
 	}
 
 	addr := fmt.Sprintf(":%s", cfg.Port)

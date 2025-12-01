@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"auth-service/config"
 	"auth-service/model"
 	"fmt"
 	"time"
@@ -9,7 +10,8 @@ import (
 )
 
 func GenerateJWT(user model.User) (string, error) {
-	jwtKey := []byte("distrurlserv")
+	cfg := config.GetConfig()
+	jwtKey := []byte(cfg.JwtSecret)
 	claims := jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,

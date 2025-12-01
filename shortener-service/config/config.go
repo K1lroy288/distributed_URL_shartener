@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	Host      string
 	Port      string
 	JwtSecret string
 	DB        DBConfig
@@ -37,6 +38,7 @@ func GetConfig() *Config {
 func loadConfig() *Config {
 	once.Do(func() {
 		instance = &Config{
+			Host:      os.Getenv("APP_HOST"),
 			Port:      os.Getenv("APP_PORT"),
 			JwtSecret: os.Getenv("JWT_SECRET"),
 			DB: DBConfig{
