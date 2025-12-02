@@ -14,7 +14,7 @@ func NewShortenerRepository(db *gorm.DB) *ShortenerRepository {
 	return &ShortenerRepository{DB: db}
 }
 
-func (r *ShortenerRepository) SaveCode(url model.Url) (bool, error) {
+func (r *ShortenerRepository) SaveCode(url *model.Url) (bool, error) {
 	var exist model.Url
 	res := r.DB.Where("short_code = ?", url.Short_code).First(&exist).Error
 	return res == nil, r.DB.Create(url).Error

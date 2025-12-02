@@ -50,7 +50,7 @@ func (h *ShortenerHandler) SaveCode(ctx *gin.Context) {
 			Owner_id:   int(ownerIdFloat),
 		}
 
-		exist, err := h.service.SaveCode(url)
+		exist, err := h.service.SaveCode(&url)
 		if err != nil {
 			log.Printf("Save short code error: %v", err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
@@ -59,7 +59,7 @@ func (h *ShortenerHandler) SaveCode(ctx *gin.Context) {
 		if !exist {
 			cfg := config.GetConfig()
 
-			url := "http://" + cfg.Host + ":" + cfg.Port + "/short/" + code
+			url := "http://" + cfg.Host + ":" + cfg.RedirectPort + "/short/" + code
 
 			ctx.JSON(http.StatusCreated, gin.H{"url": url})
 			break

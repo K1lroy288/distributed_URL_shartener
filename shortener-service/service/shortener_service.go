@@ -13,7 +13,7 @@ func NewShortenerService(repo *repository.ShortenerRepository) *ShortenerService
 	return &ShortenerService{repo: repo}
 }
 
-func (s *ShortenerService) SaveCode(url model.Url) (bool, error) {
+func (s *ShortenerService) SaveCode(url *model.Url) (bool, error) {
 	return s.repo.SaveCode(url)
 }
 

@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	Host      string
-	Port      string
-	JwtSecret string
-	DB        DBConfig
+	Host         string
+	Port         string
+	JwtSecret    string
+	DB           DBConfig
+	RedirectPort string
 }
 
 type DBConfig struct {
@@ -48,6 +49,7 @@ func loadConfig() *Config {
 				Name:     os.Getenv("DB_NAME"),
 				Port:     os.Getenv("DB_PORT"),
 			},
+			RedirectPort: os.Getenv("REDIRECT_PORT"),
 		}
 	})
 

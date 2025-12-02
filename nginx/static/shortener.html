@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Shortener</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f8f9fa; margin: 0; padding: 20px; }
+    .container { max-width: 500px; margin: auto; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    input { width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    button { width: 100%; padding: 8px; background: #0d6efd; color: white; border: none; border-radius: 4px; margin-top: 10px; cursor: pointer; }
+    #result { margin-top: 20px; text-align: center; }
+    #shortUrl { color: #0d6efd; font-weight: bold; word-break: break-all; }
+    .error { color: #d32f2f; font-size: 12px; margin-top: 4px; min-height: 16px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Shorten a Link</h2>
+  <form id="shortenForm">
+    <input id="longUrl" type="url" placeholder="https://example.com/very/long/path" required>
+    <button type="submit">Shorten</button>
+  </form>
+  <div class="error" id="error"></div>
+  <div id="result" style="display:none">
+    <p>Your short link:</p>
+    <div id="shortUrl"></div>
+    <button onclick="copyLink()">Copy</button>
+  </div>
+</div>
+
+<script>
+  async function shortenUrl(e) {
+    e.preventDefault();
+    const url = document.getElementById('longUrl').value.trim();
+    const errEl = document.getElementById('error');
+    const resultEl = document.getElementById('result');
+    const shortUrlEl = document.getElementById('shortUrl');
+
+    errEl.textContent = '';
+    resultEl.style.display = 'none';
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      errEl.textContent = 'Authorization token missing';
+      return;
+    }
+
+    try {
+      const res = await fetch('/short/shortLink', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        },
+        body: JSON.stringify(url)
+      });
+
+      const json = await res.json();
+
+      if (res.ok) {
+        shortUrlEl.textContent = json.url;
+        resultEl.style.display = 'block';
+      } else {
+        errEl.textContent = json.error || 'Failed to shorten link';
+      }
+    } catch (err) {
+      errEl.textContent = 'Network error';
+    }
+  }
+
+  function copyLink() {
+    const text = document.getElementById('shortUrl').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Copied to clipboard!');
+    });
+  }
+
+  document.getElementById('shortenForm').addEventListener('submit', shortenUrl);
+</script>
+
+</body>
+</html>
