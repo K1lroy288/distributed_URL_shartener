@@ -67,6 +67,24 @@ services:
       - postgres-shortener
     restart: unless-stopped
 
+  redirect-service:
+    image: redirect-service:latest
+    build: 
+      context: ./shortener-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8002/redirect/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - shortener-service
+      - rediss
+    restart: unless-stopped
+
   nginx:
     image: nginx:alpine
     ports:
@@ -77,6 +95,14 @@ services:
     depends_on:
       - auth-service
       - shortener-service
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
 
 volumes:
   auth_data:
