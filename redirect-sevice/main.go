@@ -1,0 +1,35 @@
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"redirect-service/client"
+	"redirect-service/config"
+	"redirect-service/handler"
+	"redirect-service/service"
+
+	"github.com/gin-gonic/gin"
+)
+
+func main() {
+	cfg := config.GetConfig()
+
+	redisAddr := cfg.RedisHost + ":" + cfg.RedisPort
+	shortenerAddr := cfg.ShortenerHost + ":" + cfg.ShortenerPort
+
+	redis := client.NewRedisClient(redisAddr)
+	shortener := client.NewShortenerClient(shortenerAddr)
+	service := service.NewRedirectService(redis, shortener)
+	handler := handler.NewRedirectHandler(service)
+
+	r := gin.Default()
+
+	r.GET("/redirect/health", func(ctx *gin.Context) {
+		ctx.String(http.StatusOK, "Shortener service is up!")
+	})
+
+	r.GET("/:shortCode", handler.Resolve)
+
+	addr := fmt.Sprintf(":%s", cfg.Port)
+	r.Run(addr)
+}

@@ -84,5 +84,5 @@ func (h *ShortenerHandler) GetLink(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Redirect(http.StatusMovedPermanently, url.Long_url)
+	ctx.JSON(http.StatusOK, gin.H{"long_url": url.Long_url})
 }
