@@ -82,7 +82,7 @@ services:
       start_period: 10s
     depends_on:
       - shortener-service
-      - rediss
+      - redis
     restart: unless-stopped
 
   nginx:
