@@ -107,3 +107,4 @@ services:
 volumes:
   auth_data:
   shortener_data:
+  redis_data:
