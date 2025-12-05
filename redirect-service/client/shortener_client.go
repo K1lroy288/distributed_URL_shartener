@@ -26,7 +26,7 @@ func NewShortenerClient(baseURL string) *shortenerClient {
 
 func (s *shortenerClient) Resolve(ctx context.Context, shortCode string) (*model.ShortenerResponse, error) {
 	url := fmt.Sprintf("%s/short/%s", s.baseURL, shortCode)
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}

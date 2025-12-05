@@ -41,7 +41,7 @@ func main() {
 
 		api.POST("/shortLink", handler.SaveCode)
 
-		api.POST("/:shortCode", handler.GetLink)
+		api.GET("/:shortCode", handler.GetLink)
 	}
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
